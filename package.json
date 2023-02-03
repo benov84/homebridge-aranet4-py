@@ -1,0 +1,42 @@
+{
+  "displayName": "Aranet4-Py",
+  "name": "homebridge-aranet4-py",
+  "version": "0.0.1",
+  "description": "An Homebridge plugin to get data from an Aranet4 via Py library.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/benov84/homebridge-aranet4-py.git"
+  },
+  "bugs": {
+    "url": "https://github.com/benov84/homebridge-aranet4-py/issues"
+  },
+  "engines": {
+    "node": ">=14.18.1",
+    "homebridge": ">=1.3.5"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "lint": "eslint src/**.ts --max-warnings=0",
+    "watch": "npm run build && npm link && nodemon",
+    "build": "rimraf ./dist && tsc",
+    "prepublishOnly": "npm run lint && npm run build"
+  },
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "dependencies": {
+    "@abandonware/noble": "^1.9.2-15"
+  },
+  "devDependencies": {
+    "@types/node": "^16.10.9",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.1",
+    "homebridge": "^1.3.5",
+    "nodemon": "^2.0.13",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.3.0",
+    "typescript": "^4.4.4"
+  }
+}
