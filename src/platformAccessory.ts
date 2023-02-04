@@ -3,6 +3,7 @@ import { Service, PlatformAccessory, Characteristic } from 'homebridge';
 import { Aranet4Platform } from './platform';
 import { Aranet4Device } from './aranet';
 import * as fs from 'fs';
+import fetch from 'node-fetch';
 
 export class Aranet4Accessory {
   private humidityService: Service;
@@ -78,65 +79,80 @@ export class Aranet4Accessory {
 
   async updateSensorData() {
     try {
-      const lines = fs.readFileSync(this.platform.config.fileName, 'utf-8')
-          .split('\n')
-          .filter(Boolean);
+        let isUrl = false;
+        if (this.platform.config.fileName.substring(0, 4).toLowerCase() === "http") {
+            isUrl = true;
+        }
+    
+        let lines
+        
+        if (!isUrl) {
+            lines = fs.readFileSync(this.platform.config.fileName, 'utf-8')
+            .split('\n')
+            .filter(Boolean);
+        } else {
+            const response = await fetch(this.platform.config.fileName)
+            const text = await response.text();        
+            lines = text.split('\n').filter(Boolean);
+        }
 
-      if (lines.length < 10) {
-        this.platform.log.error('could not update sensor data: not enought data in file');
-        return;
-      }
+        console.log(lines)
 
-      const humidity = Number(lines[6]);
-      const co2 = Number(lines[7]);
-      const battery = Number(lines[9].replace('%', ''));
-      const pressure = Number(lines[8]);
-      const temp = Number(lines[5])
-      //if (this.usesFahrenheit()) {
-      //    temp = this.fahrenheitToCelsius(temp)
-      //}
-      const temperature = temp;
+        if (lines.length < 10) {
+            this.platform.log.error('could not update sensor data: not enought data in file');
+            return;
+        }
 
-      //===output format===
-      //manufacturer
-      //modelNumber
-      //serialNumber
-      //hardwareRevision
-      //firmwareRevision
-      //temperature
-      //humidity
-      //co2
-      //pressure
-      //battery
+        const humidity = Number(lines[6]);
+        const co2 = Number(lines[7]);
+        const battery = Number(lines[9].replace('%', ''));
+        const pressure = Number(lines[8]);
+        const temp = Number(lines[5])
+        //if (this.usesFahrenheit()) {
+        //    temp = this.fahrenheitToCelsius(temp)
+        //}
+        const temperature = temp;
 
-      let batteryLevel = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
-      if (battery <= this.platform.config.batteryAlertThreshold) {
-        batteryLevel = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
-      }
-      
-      this.services.forEach(s => {
-        s.updateCharacteristic(
-          this.platform.Characteristic.StatusLowBattery,
-          batteryLevel,
-        );
-        s.updateCharacteristic(this.platform.Characteristic.BatteryLevel, battery);
-      });
-      
-      this.humidityService.updateCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, humidity);
+        //===output format===
+        //manufacturer
+        //modelNumber
+        //serialNumber
+        //hardwareRevision
+        //firmwareRevision
+        //temperature
+        //humidity
+        //co2
+        //pressure
+        //battery
 
-      this.temperatureService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, temperature);
+        let batteryLevel = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
+        if (battery <= this.platform.config.batteryAlertThreshold) {
+            batteryLevel = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
+        }
+        
+        this.services.forEach(s => {
+            s.updateCharacteristic(
+            this.platform.Characteristic.StatusLowBattery,
+            batteryLevel,
+            );
+            s.updateCharacteristic(this.platform.Characteristic.BatteryLevel, battery);
+        });
+        
+        this.humidityService.updateCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, humidity);
 
-      let co2level = this.platform.Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL;
-      if (co2 >= this.platform.config.co2AlertThreshold) {
-        co2level = this.platform.Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL;
-      }
-      
-      this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideDetected, co2level);
-      this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, co2);
-      
-      this.platform.log.debug('Updated CO2:', co2);
-    } catch (err) {
-      this.platform.log.error('could not update sensor data: ', err);
-    }
+        this.temperatureService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, temperature);
+
+        let co2level = this.platform.Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL;
+        if (co2 >= this.platform.config.co2AlertThreshold) {
+            co2level = this.platform.Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL;
+        }
+        
+        this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideDetected, co2level);
+        this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, co2);
+        
+        this.platform.log.debug('Updated CO2:', co2);
+        } catch (err) {
+        this.platform.log.error('could not update sensor data: ', err);
+        }
   }
 }

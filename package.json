@@ -1,7 +1,7 @@
 {
   "displayName": "homebridge-aranet4-py",
   "name": "homebridge-aranet4-py",
-  "version": "0.0.40",
+  "version": "0.0.45",
   "description": "An Homebridge plugin to get data from an Aranet4 via Py library.",
   "license": "Apache-2.0",
   "repository": {
@@ -26,7 +26,7 @@
     "homebridge-plugin"
   ],
   "dependencies": {
-    
+    "node-fetch": "2"
   },
   "devDependencies": {
     "@types/node": "^16.10.9",

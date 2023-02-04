@@ -5,6 +5,7 @@ import { Aranet4Accessory } from './platformAccessory';
 
 import { Aranet4Device } from './aranet';
 import * as fs from 'fs';
+import fetch from 'node-fetch';
 
 export class Aranet4Platform {
     public readonly Service: typeof Service = this.api.hap.Service;
@@ -34,9 +35,24 @@ export class Aranet4Platform {
 
     async addDevices() {
 
-        const lines = fs.readFileSync(this.config.fileName, 'utf-8')
+        let isUrl = false;
+        if (this.config.fileName.substring(0, 4).toLowerCase() === "http") {
+            isUrl = true;
+        }
+    
+        let lines
+        
+        if (!isUrl) {
+            lines = fs.readFileSync(this.config.fileName, 'utf-8')
             .split('\n')
             .filter(Boolean);
+        } else {
+            const response = await fetch(this.config.fileName)
+            const text = await response.text();        
+            lines = text.split('\n').filter(Boolean);
+        }
+
+        console.log(lines)
 
         if (lines.length < 10) {
             this.log.error('could not add sensor: not enought data in file');

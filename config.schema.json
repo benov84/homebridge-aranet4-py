@@ -12,7 +12,7 @@
         "default": "Aranet4 Py Platform"
       },
       "fileName": {
-        "title": "File Name",
+        "title": "File Name or URL",
         "type": "string",
         "required": true,
         "default": "./output.txt"
