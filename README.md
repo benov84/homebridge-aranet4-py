@@ -4,7 +4,7 @@ A Homebridge plugin for [Aranet4](https://aranet4.com/) devices using external P
 
 The [Python library](https://github.com/stijnstijn/pyaranet4) uses Bluetooth 4 (Low Energy) to connect to the Aranet and reports the CO2 level, humidity and temperature and the device's battery into HomeKit.
 
-There is a python script, which have to be scheduled, that produces txt output file. This file needs to be configures in this plugin - via local file name or URL. The output file must have exact 10 lines:
+There is python script, which will have to be run in a loop that will output a txt file containing the sensor data. This file is read by the plugin. The output file must be specified in plugin config - via local file name or URL. The output file must have exact 10 lines:
 
 ```
 manufacturer
