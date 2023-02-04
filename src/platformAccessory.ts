@@ -96,7 +96,7 @@ export class Aranet4Accessory {
             lines = text.split('\n').filter(Boolean);
         }
 
-        console.log(lines)
+        //console.log(lines)
 
         if (lines.length < 10) {
             this.platform.log.error('could not update sensor data: not enought data in file');
@@ -150,7 +150,7 @@ export class Aranet4Accessory {
         this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideDetected, co2level);
         this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, co2);
         
-        this.platform.log.debug('Updated CO2:', co2);
+        //this.platform.log.debug('Updated CO2:', co2);
         } catch (err) {
         this.platform.log.error('could not update sensor data: ', err);
         }

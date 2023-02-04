@@ -18,11 +18,11 @@ export class Aranet4Platform {
         public readonly config: PlatformConfig,
         public readonly api: API,
     ) {
-        this.log.debug('Finished initializing platform:', this.config.name);
-        this.log.debug('Configs:', JSON.stringify(this.config));
+        //this.log.debug('Finished initializing platform:', this.config.name);
+        //this.log.debug('Configs:', JSON.stringify(this.config));
 
         this.api.on('didFinishLaunching', () => {
-            log.debug('Executed didFinishLaunching callback');
+            //log.debug('Executed didFinishLaunching callback');
             this.addDevices();
         });
     }
@@ -52,7 +52,7 @@ export class Aranet4Platform {
             lines = text.split('\n').filter(Boolean);
         }
 
-        console.log(lines)
+        //console.log(lines)
 
         if (lines.length < 10) {
             this.log.error('could not add sensor: not enought data in file');
