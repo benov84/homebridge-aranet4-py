@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "Aranet4",
+  "pluginAlias": "Aranet4Py",
   "pluginType": "platform",
   "singular": true,
   "schema": {
@@ -9,7 +9,13 @@
         "title": "Name",
         "type": "string",
         "required": true,
-        "default": "Aranet4 Platform"
+        "default": "Aranet4 Py Platform"
+      },
+      "fileName": {
+        "title": "File Name",
+        "type": "string",
+        "required": true,
+        "default": "./output.txt"
       },
       "co2AlertThreshold": {
         "title": "CO2 Alert Threshold",
@@ -37,24 +43,6 @@
         "default": 300,
         "minimum": 0,
         "maximum": 3600
-      },
-      "bluetoothReadyTimeout": {
-        "title": "Bluetooth Ready Timeout",
-        "description": "How long to wait for Bluetooth to be ready (in seconds)",
-        "type": "integer",
-        "required": true,
-        "default": 10,
-        "minimum": 0,
-        "maximum": 60
-      },
-      "bluetoothDeviceSearchTimeout": {
-        "title": "Bluetooth Device Search Timeout",
-        "description": "How long to wait for Bluetooth device discovery (in seconds).",
-        "type": "integer",
-        "required": true,
-        "default": 10,
-        "minimum": 0,
-        "maximum": 60
       }
     }
   }

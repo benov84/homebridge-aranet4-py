@@ -1,17 +1,14 @@
-import { Service, PlatformAccessory } from 'homebridge';
+import { Service, PlatformAccessory, Characteristic } from 'homebridge';
 
 import { Aranet4Platform } from './platform';
-import { Aranet4Device, AranetData } from './aranet';
-import * as readline from 'readline';
+import { Aranet4Device } from './aranet';
 import * as fs from 'fs';
 
 export class Aranet4Accessory {
-  // https://developers.homebridge.io/#/service/HumiditySensor
   private humidityService: Service;
-  // https://developers.homebridge.io/#/service/TemperatureSensor
   private temperatureService: Service;
-  // https://developers.homebridge.io/#/service/CarbonDioxideSensor
   private co2Service: Service;
+  private batteryService: Service;
 
   private readonly services: Service[];
 
@@ -37,12 +34,21 @@ export class Aranet4Accessory {
     this.co2Service = this.accessory.getService(this.platform.Service.CarbonDioxideSensor) ||
       this.accessory.addService(this.platform.Service.CarbonDioxideSensor);
 
+    this.batteryService = this.accessory.getService(this.platform.Service.Battery) ||
+      this.accessory.addService(this.platform.Service.Battery)
+
+    this.humidityService.addLinkedService(this.batteryService);
+    this.temperatureService.addLinkedService(this.batteryService);
+    this.co2Service.addLinkedService(this.batteryService);
+
     this.services = [
       this.humidityService,
       this.temperatureService,
       this.co2Service,
+      this.batteryService,
     ];
 
+    this.updateSensorData();
     setInterval(async () => {
       await this.updateSensorData();
     }, this.platform.config.sensorDataRefreshInterval * 1000);
@@ -50,54 +56,42 @@ export class Aranet4Accessory {
 
   async updateSensorData() {
     try {
-      let data: AranetData = {co2: 0, humidity: 0, temperature: 0, battery: 0, pressure: 0}
-            
-      const lineReader = readline.createInterface({
-        input: fs.createReadStream('./output.txt'),
-        terminal: false,
-      });
+      const lines = fs.readFileSync(this.platform.config.fileName, 'utf-8')
+          .split('\n')
+          .filter(Boolean);
 
-      let lineNum = 0;
-      lineReader.on('line', (line) => {
-        lineNum++;
-        line = line.replace("%", "");
-        let number = Number(line);
-        if (lineNum == 1)
-          data.humidity = number;
-        if (lineNum == 2)
-          data.co2 = number;
-        if (lineNum == 3)
-          data.battery = number;
-        if (lineNum == 4)
-          data.pressure = number;
-        console.log(line);
-      });
+      const humidity = Number(lines[0]);
+      const co2 = Number(lines[1]);
+      const battery = Number(lines[2].replace('%', ''));
+      //const pressure = parseInt(lines[3]);
+      const temperature = 0;
 
       let batteryLevel = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
-      if (data.battery <= this.platform.config.batteryAlertThreshold) {
+      if (battery <= this.platform.config.batteryAlertThreshold) {
         batteryLevel = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_LOW;
       }
+      
       this.services.forEach(s => {
         s.updateCharacteristic(
           this.platform.Characteristic.StatusLowBattery,
           batteryLevel,
         );
+        s.updateCharacteristic(this.platform.Characteristic.BatteryLevel, battery);
       });
+      
+      this.humidityService.updateCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, humidity);
 
-      // push the new value to HomeKit
-      this.humidityService.updateCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, data.humidity);
-
-      this.temperatureService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, data.temperature);
+      this.temperatureService.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, temperature);
 
       let co2level = this.platform.Characteristic.CarbonDioxideDetected.CO2_LEVELS_NORMAL;
-      if (data.co2 >= this.platform.config.co2AlertThreshold) {
+      if (co2 >= this.platform.config.co2AlertThreshold) {
         co2level = this.platform.Characteristic.CarbonDioxideDetected.CO2_LEVELS_ABNORMAL;
       }
-
+      
       this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideDetected, co2level);
-      this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, data.co2);
-
-      this.platform.log.debug('Updated data:', data);
+      this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, co2);
+      
+      this.platform.log.debug('Updated CO2:', co2);
     } catch (err) {
       this.platform.log.error('could not update sensor data: ', err);
     }
