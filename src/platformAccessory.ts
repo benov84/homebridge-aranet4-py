@@ -55,28 +55,6 @@ export class Aranet4Accessory {
     }, this.platform.config.sensorDataRefreshInterval * 1000);
   }
 
-  getTemperatureUnits() {
-      switch (this.platform.config.tempUnit) {
-          case 'F':
-              return this.platform.Characteristic.TemperatureDisplayUnits.FAHRENHEIT;
-          case 'C':
-          default:
-              return this.platform.Characteristic.TemperatureDisplayUnits.CELSIUS;
-      }
-  }
-
-  usesFahrenheit() {
-      return this.getTemperatureUnits() === this.platform.Characteristic.TemperatureDisplayUnits.FAHRENHEIT;
-  }
-
-  fahrenheitToCelsius(temperature) {
-      return (temperature - 32) / 1.8;
-  }
-
-  celsiusToFahrenheit(temperature) {
-    return temperature * 1.8 + 32;
-  }
-
   async updateSensorData() {
     try {
         let isUrl = false;
@@ -96,8 +74,6 @@ export class Aranet4Accessory {
             lines = text.split('\n').filter(Boolean);
         }
 
-        //console.log(lines)
-
         if (lines.length < 10) {
             this.platform.log.error('could not update sensor data: not enought data in file');
             return;
@@ -108,22 +84,7 @@ export class Aranet4Accessory {
         const battery = Number(lines[9].replace('%', ''));
         const pressure = Number(lines[8]);
         const temp = Number(lines[5])
-        //if (this.usesFahrenheit()) {
-        //    temp = this.fahrenheitToCelsius(temp)
-        //}
         const temperature = temp;
-
-        //===output format===
-        //manufacturer
-        //modelNumber
-        //serialNumber
-        //hardwareRevision
-        //firmwareRevision
-        //temperature
-        //humidity
-        //co2
-        //pressure
-        //battery
 
         let batteryLevel = this.platform.Characteristic.StatusLowBattery.BATTERY_LEVEL_NORMAL;
         if (battery <= this.platform.config.batteryAlertThreshold) {
@@ -150,9 +111,8 @@ export class Aranet4Accessory {
         this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideDetected, co2level);
         this.co2Service.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, co2);
         
-        //this.platform.log.debug('Updated CO2:', co2);
         } catch (err) {
-        this.platform.log.error('could not update sensor data: ', err);
+            this.platform.log.error('could not update sensor data: ', err);
         }
   }
 }

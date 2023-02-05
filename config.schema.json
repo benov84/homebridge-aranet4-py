@@ -17,12 +17,6 @@
         "required": true,
         "default": "./output.txt"
       },
-      "tempUnit": {
-        "title": "Temperature Unit",
-        "type": "string",
-        "required": true,
-        "default": "F"
-      },
       "co2AlertThreshold": {
         "title": "CO2 Alert Threshold",
         "description": "When to consider that the CO2 level is too high (in ppm).",
